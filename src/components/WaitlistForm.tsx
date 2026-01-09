@@ -1,101 +1,84 @@
 "use client";
 
-import { useState } from "react";
-
-type Status = "idle" | "loading" | "success" | "error";
+import { useRef, useState } from "react";
 
 export default function WaitlistForm() {
-  const [status, setStatus] = useState<Status>("idle");
-  const [message, setMessage] = useState<string>("");
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setStatus("loading");
-    setMessage("");
-
-    const form = new FormData(e.currentTarget);
-    const payload = {
-      name: String(form.get("name") || ""),
-      email: String(form.get("email") || ""),
-      segment: String(form.get("segment") || ""),
-    };
-
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = (await res.json()) as { ok: boolean; error?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error || "Something went wrong.");
-
-      setStatus("success");
-      setMessage("You're in! We'll reach out with early access.");
-      (e.target as HTMLFormElement).reset();
-    } catch (err: any) {
-      setStatus("error");
-      setMessage(err?.message || "Unable to submit. Please try again.");
-    }
-  }
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   return (
-    <form onSubmit={onSubmit} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-      <label className="block text-sm font-bold text-white/90">
-        Name
-        <input
-          name="name"
-          required
-          className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none focus:ring-4 focus:ring-violet-500/20"
-        />
-      </label>
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+         <p className="text-xs text-red-400">WAITLIST v2 (GOOGLE FORMS)</p>
+      <iframe name="hidden_iframe" style={{ display: "none" }} />
 
-      <label className="mt-4 block text-sm font-bold text-white/90">
-        Email
-        <input
-          name="email"
-          type="email"
-          required
-          className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none focus:ring-4 focus:ring-violet-500/20"
-        />
-      </label>
-
-      <label className="mt-4 block text-sm font-bold text-white/90">
-        What are you building?
-        <select
-          name="segment"
-          required
-          className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none focus:ring-4 focus:ring-violet-500/20"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Select one
-          </option>
-          <option>Solo / service business</option>
-          <option>Agency / studio</option>
-          <option>E-commerce</option>
-          <option>Startup / SaaS</option>
-          <option>Other</option>
-        </select>
-      </label>
-
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-300 px-5 py-3 font-extrabold text-[#070B14] disabled:opacity-60"
+      <form
+        ref={formRef}
+        action="https://docs.google.com/forms/d/e/1FAIpQLSf6WFYSVoyweSgm4XQ4vzID2Ll-P7xHx5r1vKP6Ub7svosrEQ/formResponse"
+        method="POST"
+        target="hidden_iframe"
+        className="flex flex-col gap-4"
+        onSubmit={() => {
+          setSubmitted(true);
+          setTimeout(() => formRef.current?.reset(), 50);
+        }}
       >
-        {status === "loading" ? "Submitting..." : "Join waitlist"}
-      </button>
+        <label className="text-sm font-semibold text-white/80">
+          Name
+          <input
+            name="entry.5007419"
+            placeholder="Your name"
+            required
+            className="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-white placeholder-white/50 outline-none"
+          />
+        </label>
 
-      {message && (
-        <p className={`mt-4 text-sm ${status === "success" ? "text-emerald-200" : "text-red-200"}`}>
-          {message}
-        </p>
-      )}
+        <label className="text-sm font-semibold text-white/80">
+          Email
+          <input
+            type="email"
+            name="entry.1434504258"
+            placeholder="Email address"
+            required
+            autoComplete="email"
+            className="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-white placeholder-white/50 outline-none"
+          />
+        </label>
+
+        <label className="text-sm font-semibold text-white/80">
+          Company stage
+          <select
+            name="entry.324466453"
+            required
+            defaultValue=""
+            className="mt-2 w-full rounded-2xl bg-white/10 px-4 py-3 text-white outline-none"
+          >
+            <option value="" disabled>
+              Select one
+            </option>
+            <option value="Idea">Idea</option>
+            <option value="Early revenue">Early revenue</option>
+            <option value="Scaling">Scaling</option>
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          className="mt-2 w-full rounded-2xl bg-gradient-to-br from-violet-500 to-sky-300 px-5 py-3 font-extrabold text-[#070B14] hover:opacity-95"
+        >
+          Join waitlist
+        </button>
+
+        {submitted && (
+          <p className="text-sm text-emerald-200/90">
+            ✅ Submitted! Check your Google Form responses.
+          </p>
+        )}
+      </form>
 
       <p className="mt-4 text-xs leading-relaxed text-white/60">
-        Foundryly provides business tools and education and does not provide legal advice.
+        Foundryly provides business tools and education and does not provide legal
+        advice.
       </p>
-    </form>
+    </div>
   );
 }
