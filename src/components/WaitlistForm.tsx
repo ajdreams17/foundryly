@@ -8,7 +8,6 @@ export default function WaitlistForm() {
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-         <p className="text-xs text-red-400">WAITLIST v2 (GOOGLE FORMS)</p>
       <iframe name="hidden_iframe" style={{ display: "none" }} />
 
       <form
